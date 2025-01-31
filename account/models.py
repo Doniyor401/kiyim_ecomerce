@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-# Create your models here.
+
 
 class MyAccountManager(BaseUserManager):
     def create_user(self, first_name, last_name, username, email, password=None, user_company=None):
@@ -37,12 +37,14 @@ class MyAccountManager(BaseUserManager):
         user.save(using = self._db)
         return user
 
+
 class Account(AbstractBaseUser):
+    avatar = models.ImageField(default='photoes/avatars/avatar.png', upload_to='photoes/avatars')
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=50, unique=True)
-    phone_number = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=50, unique=True, blank=True)
     user_company = models.CharField(max_length=50, default=None)
 
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -52,7 +54,7 @@ class Account(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'email'   #kirvotkanda email soridi, default username boladi ozi
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     objects = MyAccountManager()
