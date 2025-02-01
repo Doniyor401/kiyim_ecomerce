@@ -1,12 +1,16 @@
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
-# Create your views here.
+
 
 def cart(request):
-
+    cart_items = []
+    total = 0
+    tax = 0
+    gen_total = 0
     try:
-        cart= Cart.objects.get(session_id=_cart_id(request))
+        cart = Cart.objects.get(session_id=_cart_id(request))
         cart_items = CartItem.objects.filter(cart=cart)
         total = 0
         for cart_item in cart_items:
@@ -29,7 +33,11 @@ def _cart_id(request):
         cart = request.session.create()
     return cart
 
-def add_cart(request, product_id):        
+
+@login_required
+def add_cart(request, product_id):
+    # if not request.user.is_authenticated:
+    #     return redirect(f'/account/login/?next={request.path}')
     product = Product.objects.get(id=product_id)
     
     try:
@@ -51,6 +59,7 @@ def add_cart(request, product_id):
         cart_item.save()
     return redirect('cart')
 
+
 def sub_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart = Cart.objects.get(session_id=_cart_id(request))
@@ -61,6 +70,7 @@ def sub_cart(request, product_id):
     else:
         cart_item.delete()
     return redirect('cart')
+
 
 def remove_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
