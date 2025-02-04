@@ -18,81 +18,55 @@
                         </article> <!-- gallery-wrap .end// -->
                     </aside>
                     <main class="col-md-6 border-left">
-                        <article class="content-body">
+                        <form action="{% url 'cart_add' product.id %}" method="post">
+                            {% csrf_token %}
+                            <article class="content-body">
 
-                            <h2 class="title">{{ product.name }}</h2>
+                                <h2 class="title">{{ product.name }}</h2>
 
-                            <div class="mb-3">
-                                {% if product.discount > 0 %}
-                                    <p>
-                                        <span class="badge badge-danger">Скидка: {{ product.discount|floatformat:0 }}%</span>
-                                    </p>
-                                    <span class="price h6">${{ product.get_price_with_discount }}</span>
-                                    <del class="price-old">${{ product.price }}</del>
-                                {% else %}
-                                    <var class="price h6">${{ product.price }}</var>
-                                {% endif %}
-                            </div>
-
-                            <p>{{ product.description }}</p>
-
-                            <hr>
-                            <div class="row">
-                                <div class="item-option-select">
-                                    <h6>Choose Color</h6>
-                                    <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
-                                        <label class="btn btn-light">
-                                            <input type="radio" name="radio_color"> Silver
-                                        </label>
-                                        <label class="btn btn-light">
-                                            <input type="radio" name="radio_color"> Gray
-                                        </label>
-                                        <label class="btn btn-light active">
-                                            <input type="radio" name="radio_color" checked> Gold
-                                        </label>
-                                        <label class="btn btn-light">
-                                            <input type="radio" name="radio_color"> Black
-                                        </label>
-                                    </div>
+                                <div class="mb-3">
+                                    {% if product.discount > 0 %}
+                                        <p>
+                                            <span class="badge badge-danger">Скидка: {{ product.discount|floatformat:0 }}%</span>
+                                        </p>
+                                        <span class="price h6">${{ product.get_price_with_discount }}</span>
+                                        <del class="price-old">${{ product.price }}</del>
+                                    {% else %}
+                                        <var class="price h6">${{ product.price }}</var>
+                                    {% endif %}
                                 </div>
-                            </div> <!-- row.// -->
-                            <div class="row">
-                                <div class="item-option-select">
-                                    <h6>Select Size</h6>
-                                    <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
-                                        <label class="btn btn-light">
-                                            <input type="radio" name="radio_color"> S
-                                        </label>
-                                        <label class="btn btn-light active">
-                                            <input type="radio" name="radio_color" checked> M
-                                        </label>
-                                        <label class="btn btn-light">
-                                            <input type="radio" name="radio_color"> L
-                                        </label>
-                                        <label class="btn btn-light">
-                                            <input type="radio" name="radio_color"> XL
-                                        </label>
-                                    </div>
-                                </div>
-                            </div> <!-- row.// -->
-                            <hr>
-                            {% if product.stock > 0 %}
-                                {% if cart_in %}
-                                    <a href="#" class="btn  btn-success"> <span class="text">Added to
-                                cart</span>
-                                        <i class="fa fa-check"></i> </a>
-                                    <a href="{% url 'cart' %}" class="btn  btn-outline-success"> <span class="text">View cart</span>
-                                        <i class="fa fa-eye"></i> </a>
+
+                                <p>{{ product.description }}</p>
+
+                                {% for category, query in product.variation_set.all_types.items %}
+                                    <div class="row">
+                                        <div class="item-option-select">
+                                            <h6>Choose {{ category |  capfirst }}</h6>
+                                            <div class="btn-group btn-group-sm btn-group-toggle row"
+                                                 data-toggle="buttons">
+                                                {% for variation in query %}
+                                                    <label class="btn btn-light">
+                                                        <input type="radio" name="{{ variation.category }}" required value="{{ variation.value }}">
+                                                        {{ variation.value | capfirst }}
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div> <!-- row.// -->
+                                {% endfor %}
+
+                                <hr>
+                                {% if product.stock > 0 %}
+                                    <button type="submit" class="btn  btn-primary"> <span
+                                            class="text">Add to cart</span>
+                                        <i class="fas fa-shopping-cart"></i></button>
+                                    <a href="{% url 'store' %}" class="btn  btn-outline-info"> <span class="text">Go shopping</span>
+                                        <i class="fa fa-cart-plus"></i></a>
                                 {% else %}
-                                    <a href="{% url 'cart_add' product.id %}" class="btn  btn-primary"> <span
-                                            class="text">Add to
-                                cart</span>
-                                        <i class="fas fa-shopping-cart"></i> </a>
+                                    <h5 class="text-danger">Out of stock</h5>
                                 {% endif %}
-                            {% else %}
-                                <h5 class="text-danger">Out of stock</h5>
-                            {% endif %}
-                        </article> <!-- product-info-aside .// -->
+                            </article> <!-- product-info-aside .// -->
+                        </form>
                     </main> <!-- col.// -->
                 </div> <!-- row.// -->
             </div> <!-- card.// -->
@@ -153,5 +127,4 @@
         </div> <!-- container .//  -->
     </section>
     <!-- ========================= SECTION CONTENT END// ========================= -->
-
 {% endblock %}

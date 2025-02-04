@@ -2,13 +2,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import *
+from django.db.models import Count
 
 
-def cart(request):
-    cart_items = []
-    total = 0
-    tax = 0
-    gen_total = 0
+def cart(request, total = 0, tax=0, gen_total=0, cart_items=None):
+
     try:
         cart = Cart.objects.get(session_id=_cart_id(request))
         cart_items = CartItem.objects.filter(cart=cart)
@@ -36,8 +34,14 @@ def _cart_id(request):
 
 @login_required
 def add_cart(request, product_id):
-    # if not request.user.is_authenticated:
-    #     return redirect(f'/account/login/?next={request.path}')
+    # variations obyektlarini xosil qilish
+    variations = []
+    data = dict(request.POST)
+    data.pop('csrfmiddlewaretoken')
+    for category, value in data.items():
+        var = Variation.objects.get(category=category, value=value[0])
+        variations.append(var)
+
     product = Product.objects.get(id=product_id)
     
     try:
@@ -47,7 +51,7 @@ def add_cart(request, product_id):
     cart.save()
     
     try:
-        cart_item = CartItem.objects.get(product=product, cart=cart)
+        cart_item = CartItem.objects.filter(product=product, cart=cart, variations__in = variations).annotate(num = Count('variations')).get(num=len(variations))
         cart_item.quantity += 1
         cart_item.save()
     except CartItem.DoesNotExist:
@@ -56,14 +60,14 @@ def add_cart(request, product_id):
             cart = cart,
             quantity = 1
         )
+        cart_item.variations.set(variations)
         cart_item.save()
     return redirect('cart')
 
 
-def sub_cart(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    cart = Cart.objects.get(session_id=_cart_id(request))
-    cart_item = CartItem.objects.get(product=product, cart=cart)
+def sub_cart(request, item_id):
+
+    cart_item = CartItem.objects.get(pk=item_id)
     if cart_item.quantity > 1:
         cart_item.quantity -= 1
         cart_item.save()
@@ -72,9 +76,14 @@ def sub_cart(request, product_id):
     return redirect('cart')
 
 
-def remove_cart(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    cart = Cart.objects.get(session_id=_cart_id(request))
-    cart_item = CartItem.objects.get(product=product, cart=cart)
+def cart_increment(request, item_id):
+    cart_item = CartItem.objects.get(pk=item_id)
+    cart_item.quantity += 1
+    cart_item.save()
+    return redirect('cart')
+
+
+def remove_cart(request, item_id):
+    cart_item = CartItem.objects.get(pk=item_id)
     cart_item.delete()
     return redirect('cart')

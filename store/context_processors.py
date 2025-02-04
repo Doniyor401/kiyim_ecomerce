@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist, RequestAborted
 from cart.models import CartItem, Cart
 from cart.views import _cart_id
 
+
 def counter(request):
     try:
         cart = Cart.objects.get(session_id=_cart_id(request))

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Product, ProductImage
+from .models import Product, ProductImage, Variation
 
 
 class ProductImageInline(admin.TabularInline):
@@ -41,4 +41,11 @@ class ProductAdmin(admin.ModelAdmin):
         return super().get_fieldsets(request, obj)
 
 
+class VariationAdmin(admin.ModelAdmin):
+    list_display = ('product', 'category', 'value', 'is_active')
+    list_editable = ('is_active',)
+    list_filter = ('product', 'category')
+
+
 admin.site.register(ProductImage)
+admin.site.register(Variation, VariationAdmin)
